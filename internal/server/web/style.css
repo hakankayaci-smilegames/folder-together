@@ -277,6 +277,14 @@ body {
   cursor: pointer;
 }
 
+.file-row.parent-row {
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.file-row.parent-row:hover {
+  background: rgba(56, 189, 248, 0.12) !important;
+}
+
 .file-name-cell {
   display: flex;
   align-items: center;
@@ -317,6 +325,15 @@ body {
   text-align: center;
   transition: transform 0.2s, border-color 0.2s;
   cursor: pointer;
+}
+
+.grid-item.parent-card {
+  border: 1px dashed var(--accent);
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.grid-item.parent-card:hover {
+  background: rgba(56, 189, 248, 0.12);
 }
 
 .grid-item:hover {

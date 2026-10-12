@@ -452,10 +452,16 @@ func (s *Server) handleZip(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 	s.mu.RLock()
 	allowUpload := s.cfg.AllowUpload
+	isSingle := s.cfg.SingleFile
 	s.mu.RUnlock()
 
 	if !allowUpload {
 		http.Error(w, i18n.T("upload_disabled"), http.StatusForbidden)
+		return
+	}
+
+	if isSingle {
+		http.Error(w, "Tek dosya paylaşım modunda yükleme yapılamaz", http.StatusBadRequest)
 		return
 	}
 
@@ -469,6 +475,9 @@ func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Upload parsing error: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	if r.MultipartForm != nil {
+		defer r.MultipartForm.RemoveAll()
+	}
 
 	reqPath := r.FormValue("path")
 	targetDir, err := s.resolveSafePath(reqPath)
@@ -477,29 +486,48 @@ func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fi, err := os.Stat(targetDir)
+	if err != nil || !fi.IsDir() {
+		http.Error(w, "Hedef klasör bulunamadı veya geçerli bir klasör değil", http.StatusBadRequest)
+		return
+	}
+
 	files := r.MultipartForm.File["files"]
+	if len(files) == 0 {
+		http.Error(w, "Yüklenecek dosya bulunamadı", http.StatusBadRequest)
+		return
+	}
+
 	count := 0
 	for _, fh := range files {
-		file, err := fh.Open()
+		safeFileName := filepath.Base(fh.Filename)
+		if safeFileName == "." || safeFileName == "/" || safeFileName == "\\" || safeFileName == "" {
+			continue
+		}
+		dstPath := filepath.Join(targetDir, safeFileName)
+
+		src, err := fh.Open()
 		if err != nil {
 			continue
 		}
-		defer file.Close()
-
-		safeFileName := filepath.Base(fh.Filename)
-		dstPath := filepath.Join(targetDir, safeFileName)
 
 		dst, err := os.Create(dstPath)
 		if err != nil {
+			src.Close()
 			continue
 		}
-		defer dst.Close()
 
-		io.Copy(dst, file)
-		count++
-		s.LogEvent(fmt.Sprintf("Dosya yüklendi: %s (%d bytes)", safeFileName, fh.Size), "upload")
+		_, copyErr := io.Copy(dst, src)
+		src.Close()
+		dst.Close()
+
+		if copyErr == nil {
+			count++
+			s.LogEvent(fmt.Sprintf("Dosya yüklendi: %s (%d bytes)", safeFileName, fh.Size), "upload")
+		}
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`{"success":true,"uploaded":%d}`, count)))
 }

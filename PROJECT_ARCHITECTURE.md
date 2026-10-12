@@ -99,7 +99,10 @@ folder-together/
 │   │       ├── style.css        # Alıcı arayüzü ve ortak tasarım stilleri
 │   │       └── app.js           # Alıcı arayüzü mantığı (Arama, önizleme, yükleme)
 │   └── tunnel/
-│       └── tunnel.go            # LAN IP ve Cloudflare Quick Tunnel yöneticisi
+│       ├── tunnel.go            # LAN IP, tünel yöneticisi ve URL kısaltıcı
+│       ├── embedded_windows.go  # Windows için gömülü cloudflared.exe (.gz) açıcı
+│       ├── embedded_linux.go    # Linux için gömülü cloudflared (.gz) açıcı
+│       └── embeds/              # Gömülü sıkıştırılmış ikililer (*.gz)
 ├── bin/
 │   ├── folder-together-linux    # Kubuntu için tek binary (ELF)
 │   └── folder-together-windows.exe # Windows 10 için tek binary (.exe)

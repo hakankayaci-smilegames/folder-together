@@ -78,6 +78,8 @@ function applyI18n() {
   setTxt("txt-pin-required", "pin_required");
   setTxt("pin-submit", "pin_submit");
   setTxt("txt-download-zip", "download_zip");
+  setTxt("txt-parent-dir", "parent_dir");
+  setTxt("txt-empty-back", "parent_dir");
   setTxt("th-name", "name");
   setTxt("th-size", "size");
   setTxt("th-date", "modified");
@@ -108,17 +110,24 @@ function hidePinModal() {
   document.getElementById("pin-modal").classList.add("hidden");
 }
 
-// --- Data Fetching ---
+// --- Data Fetching & Navigation ---
+function getParentPath(path) {
+  if (!path || path === "/" || path === "") return "/";
+  const parts = path.split("/").filter(Boolean);
+  parts.pop();
+  return parts.length === 0 ? "/" : "/" + parts.join("/");
+}
+
 async function loadPath(path) {
-  currentPath = path;
-  updateBreadcrumbs(path);
+  currentPath = path || "/";
+  updateBreadcrumbs(currentPath);
 
   const headers = {};
   const pin = getPin();
   if (pin) headers["X-PIN"] = pin;
 
   try {
-    const res = await fetch(`/api/list?path=${encodeURIComponent(path)}`, { headers });
+    const res = await fetch(`/api/list?path=${encodeURIComponent(currentPath)}`, { headers });
     if (res.status === 401) {
       sessionStorage.removeItem("p2p_pin");
       showPinModal(i18n["pin_invalid"] || "Hatalı veya eksik PIN!");
@@ -145,7 +154,26 @@ async function loadPath(path) {
   }
 }
 
+// Global alias for compatibility
+window.navigateTo = (p) => loadPath(p);
+
 function updateBreadcrumbs(path) {
+  const isSubfolder = path !== "/" && path !== "";
+  const backBtn = document.getElementById("btn-back-dir");
+  if (backBtn) {
+    if (isSubfolder) {
+      backBtn.classList.remove("hidden");
+      backBtn.onclick = () => loadPath(getParentPath(currentPath));
+    } else {
+      backBtn.classList.add("hidden");
+    }
+  }
+
+  const crumbRoot = document.getElementById("crumb-root");
+  if (crumbRoot) {
+    crumbRoot.onclick = () => loadPath("/");
+  }
+
   const container = document.getElementById("breadcrumb-links");
   container.innerHTML = "";
   const parts = path.split("/").filter(Boolean);
@@ -181,8 +209,20 @@ function filterAndRender() {
   });
 
   const emptyState = document.getElementById("empty-state");
+  const isSubfolder = currentPath !== "/" && currentPath !== "";
+
   if (!filtered || filtered.length === 0) {
+    // If inside an empty subfolder, show empty state with a parent directory return button
     emptyState.classList.remove("hidden");
+    const emptyBackBtn = document.getElementById("empty-back-btn");
+    if (emptyBackBtn) {
+      if (isSubfolder) {
+        emptyBackBtn.classList.remove("hidden");
+        emptyBackBtn.onclick = () => loadPath(getParentPath(currentPath));
+      } else {
+        emptyBackBtn.classList.add("hidden");
+      }
+    }
     document.getElementById("file-table").classList.add("hidden");
     document.getElementById("file-grid").classList.add("hidden");
     return;
@@ -204,6 +244,19 @@ function filterAndRender() {
 function renderFileList(items) {
   const tbody = document.getElementById("file-list-body");
   tbody.innerHTML = "";
+
+  if (currentPath !== "/" && currentPath !== "" && !searchQuery.trim()) {
+    const trParent = document.createElement("tr");
+    trParent.className = "file-row is-dir parent-row";
+    trParent.innerHTML = `
+      <td class="file-name-cell" colspan="4">
+        <span class="file-icon">📁 ⬆️</span>
+        <strong style="color:var(--accent);">.. (${i18n["parent_dir"] || "Üst Klasöre Git"})</strong>
+      </td>
+    `;
+    trParent.onclick = () => loadPath(getParentPath(currentPath));
+    tbody.appendChild(trParent);
+  }
 
   items.forEach(item => {
     const tr = document.createElement("tr");
@@ -266,6 +319,18 @@ function renderFileList(items) {
 function renderFileGrid(items) {
   const grid = document.getElementById("file-grid");
   grid.innerHTML = "";
+
+  if (currentPath !== "/" && currentPath !== "" && !searchQuery.trim()) {
+    const cardParent = document.createElement("div");
+    cardParent.className = "grid-item parent-card";
+    cardParent.innerHTML = `
+      <div class="grid-icon">📁 ⬆️</div>
+      <div class="grid-name">..</div>
+      <div class="grid-meta">${i18n["parent_dir"] || "Üst Klasöre Git"}</div>
+    `;
+    cardParent.onclick = () => loadPath(getParentPath(currentPath));
+    grid.appendChild(cardParent);
+  }
 
   items.forEach(item => {
     const card = document.createElement("div");
@@ -472,6 +537,8 @@ if (dropZone && fileInput) {
 }
 
 function uploadFiles(files) {
+  if (!files || files.length === 0) return;
+
   const progressContainer = document.getElementById("upload-progress-container");
   const progressBar = document.getElementById("upload-progress-bar");
   const progressText = document.getElementById("upload-progress-text");
@@ -486,9 +553,10 @@ function uploadFiles(files) {
     formData.append("files", files[i]);
   }
 
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "/api/upload");
   const pin = getPin();
+  const pinQuery = pin ? `?pin=${encodeURIComponent(pin)}` : "";
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/api/upload" + pinQuery);
   if (pin) xhr.setRequestHeader("X-PIN", pin);
 
   xhr.upload.onprogress = (e) => {
@@ -499,18 +567,23 @@ function uploadFiles(files) {
     }
   };
 
-  xhr.onload = () => {
+  const cleanup = () => {
     progressContainer.classList.add("hidden");
+    if (fileInput) fileInput.value = "";
+  };
+
+  xhr.onload = () => {
+    cleanup();
     if (xhr.status === 200) {
       loadPath(currentPath);
     } else {
-      alert("Upload failed: " + xhr.responseText);
+      alert((i18n["upload_failed"] || "Yükleme hatası: ") + " " + xhr.responseText);
     }
   };
 
   xhr.onerror = () => {
-    progressContainer.classList.add("hidden");
-    alert("Upload network error!");
+    cleanup();
+    alert(i18n["upload_network_error"] || "Yükleme sırasında ağ hatası oluştu!");
   };
 
   xhr.send(formData);

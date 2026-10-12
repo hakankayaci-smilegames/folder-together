@@ -74,7 +74,8 @@
       <!-- Toolbar: Breadcrumb + Search + View Toggle -->
       <div class="toolbar">
         <nav class="breadcrumb-bar">
-          <span class="crumb-root" onclick="navigateTo('/')">🏠 root</span>
+          <button id="btn-back-dir" class="btn btn-outline btn-sm hidden" style="padding:4px 10px;margin-right:4px;">⬅️ <span id="txt-parent-dir">Üst Klasör</span></button>
+          <span id="crumb-root" class="crumb-root">🏠 root</span>
           <span id="breadcrumb-links"></span>
         </nav>
         <div class="toolbar-controls">
@@ -126,6 +127,7 @@
 
         <div id="empty-state" class="empty-state hidden">
           <p id="txt-folder-empty">Bu klasör boş</p>
+          <button id="empty-back-btn" class="btn btn-outline btn-sm hidden" style="margin-top:12px;">⬅️ <span id="txt-empty-back">Üst Klasöre Git</span></button>
         </div>
       </div>
     </main>
