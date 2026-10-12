@@ -71,20 +71,32 @@ func FindOrDownloadCloudflared() (string, error) {
 		return path, nil
 	}
 
-	// 2. Check in current executable directory or ~/.local/bin
+	// 2. Check candidate paths in filesystem
 	homeDir, _ := os.UserHomeDir()
 	candidatePaths := []string{
 		binaryName,
 		filepath.Join(".", binaryName),
 		filepath.Join(homeDir, ".local", "bin", binaryName),
 	}
+	if runtime.GOOS == "windows" {
+		localApp := os.Getenv("LOCALAPPDATA")
+		if localApp != "" {
+			candidatePaths = append(candidatePaths, filepath.Join(localApp, "folder-together", binaryName))
+		}
+	}
 	for _, p := range candidatePaths {
-		if _, err := os.Stat(p); err == nil {
+		if fi, err := os.Stat(p); err == nil && fi.Size() > 1024*1024 {
 			return p, nil
 		}
 	}
 
-	// 3. Attempt download
+	// 3. Extract embedded cloudflared (100% offline, zero internet download required!)
+	extracted, err := extractEmbeddedCloudflared()
+	if err == nil && extracted != "" {
+		return extracted, nil
+	}
+
+	// 4. Fallback: Attempt download if extraction failed
 	targetPath := filepath.Join(".", binaryName)
 	downloadURL := ""
 	if runtime.GOOS == "windows" {

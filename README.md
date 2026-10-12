@@ -27,6 +27,7 @@
   - **Çoklu Sürükle-Bırak Yükleme:** İlerleme yüzdesiyle dosya yükleme.
 - 🔒 **Güvenlik & PIN:** Tek kullanımlık 4 haneli PIN koruması.
 - 🌍 **Çift Dilli (i18n):** Türkçe (TR) ve İngilizce (EN) tam dil desteği.
+- 🔌 **Gömülü Tünel (Self-Contained Engine):** Cloudflare tünel motoru doğrudan `.exe` ve Linux ikili dosyasının içerisine gömülüdür. Windows'ta harici indirme veya kuruluma gerek yoktur.
 - 📦 **Tek Binary (Single Static Binary):** Node.js, Electron, Python veya harici DLL gerektirmez.
 
 ---
