@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>folder-together</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- PIN Modal -->
+  <div id="pin-modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="lock-icon">🔒</div>
+      <h2 id="txt-pin-required">Erişim PIN Kodu Gereklidir</h2>
+      <p id="txt-pin-subtitle">Paylaşan kişinin ekranında gösterilen PIN kodunu girin.</p>
+      <div class="pin-input-group">
+        <input type="password" id="pin-input" placeholder="PIN" maxlength="12" autofocus>
+        <button id="pin-submit" class="btn btn-primary">Giriş Yap</button>
+      </div>
+      <div id="pin-error" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="preview-modal" class="modal hidden">
+    <div class="modal-card modal-preview">
+      <div class="preview-header">
+        <h3 id="preview-title" class="preview-title">Dosya Önizleme</h3>
+        <button id="preview-close" class="btn btn-outline btn-sm">✕</button>
+      </div>
+      <div id="preview-body" class="preview-body">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="preview-footer">
+        <a id="preview-dl-btn" class="btn btn-primary btn-sm" download>⬇️ İndir</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Modal -->
+  <div id="qr-modal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="txt-qr-title">Mobil veya Diğer Cihaz İçin QR Kod</h3>
+      <div id="qr-container" class="qr-box"></div>
+      <p id="qr-link-text" class="qr-link-text"></p>
+      <button id="btn-close-qr" class="btn btn-outline" style="margin-top:16px;">Kapat</button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo">📂</div>
+        <div>
+          <h1 id="app-heading">folder-together</h1>
+          <p id="app-subheading" class="subtitle">Kubuntu & Windows 10 Paylaşım Alanı</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-qr-share" class="btn btn-outline">
+          <span>📱</span> QR
+        </button>
+        <button id="btn-download-zip" class="btn btn-accent">
+          <span>📦</span> <span id="txt-download-zip">Tümünü ZIP İndir</span>
+        </button>
+        <div class="lang-switch">
+          <button id="btn-lang-tr" class="btn-lang active">TR</button>
+          <button id="btn-lang-en" class="btn-lang">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Toolbar: Breadcrumb + Search + View Toggle -->
+      <div class="toolbar">
+        <nav class="breadcrumb-bar">
+          <span class="crumb-root" onclick="navigateTo('/')">🏠 root</span>
+          <span id="breadcrumb-links"></span>
+        </nav>
+        <div class="toolbar-controls">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Dosyalarda ara..." />
+          </div>
+          <div class="view-switch">
+            <button id="btn-view-list" class="btn-view active" title="Liste Görünümü">☰</button>
+            <button id="btn-view-grid" class="btn-view" title="Izgara Görünümü">☷</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Panel (if enabled) -->
+      <div id="upload-panel" class="upload-panel hidden">
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" multiple class="file-input-hidden">
+          <div class="drop-icon">⬆️</div>
+          <p id="txt-upload-hint">Dosyaları buraya sürükleyin veya <strong>seçmek için tıklayın</strong></p>
+          <div id="upload-progress-container" class="progress-bar-container hidden">
+            <div id="upload-progress-bar" class="progress-bar"></div>
+            <span id="upload-progress-text">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Content: List View & Grid View -->
+      <div class="card file-list-card">
+        <!-- List View Table -->
+        <table id="file-table" class="file-table">
+          <thead>
+            <tr>
+              <th id="th-name" class="col-name">İsim</th>
+              <th id="th-size" class="col-size">Boyut</th>
+              <th id="th-date" class="col-date">Son Değişiklik</th>
+              <th id="th-actions" class="col-actions">İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="file-list-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+
+        <!-- Grid View Cards -->
+        <div id="file-grid" class="file-grid hidden">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div id="empty-state" class="empty-state hidden">
+          <p id="txt-folder-empty">Bu klasör boş</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <span>folder-together &bull; P2P Direct & Secure</span>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

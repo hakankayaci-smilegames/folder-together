@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>folder-together - Host Kontrol Paneli</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/host.css">
+</head>
+<body>
+  <!-- QR Code Modal -->
+  <div id="qr-modal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="txt-qr-title">Erişim QR Kodu</h3>
+      <div id="qr-container" class="qr-box"></div>
+      <p id="qr-link-text" class="qr-link-text"></p>
+      <button id="btn-close-qr" class="btn btn-outline" style="margin-top:16px;">Kapat</button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo">⚡</div>
+        <div>
+          <h1 id="host-title">folder-together Host</h1>
+          <p id="host-subtitle" class="subtitle">Masaüstü Yönetim & Canlı İzleme</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="status-badge" class="badge badge-stopped">Durduruldu</div>
+        <div class="lang-switch">
+          <button id="btn-lang-tr" class="btn-lang active">TR</button>
+          <button id="btn-lang-en" class="btn-lang">EN</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="host-grid">
+      <!-- Left Column: Controls & Configuration -->
+      <section class="card config-card">
+        <h2 id="txt-config-heading" class="card-title">⚙️ Paylaşım Yapılandırması</h2>
+
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+          <button id="tab-folder" class="tab-btn active">📁 Klasör Paylaş</button>
+          <button id="tab-file" class="tab-btn">📄 Tek Dosya Paylaş</button>
+        </div>
+
+        <!-- Target Path Selection -->
+        <div class="form-group">
+          <label id="lbl-path">Paylaşılacak Yol:</label>
+          <div class="input-with-btn">
+            <input type="text" id="input-path" placeholder="/home/... veya C:\..." />
+            <button id="btn-browse-os" class="btn btn-accent">📁 Gözat...</button>
+          </div>
+          <span class="field-hint">İşletim sistemi penceresinden seçmek için "Gözat"a tıklayın.</span>
+        </div>
+
+        <!-- Security / PIN Settings -->
+        <div class="form-group">
+          <label id="lbl-pin">Erişim PIN Kodu:</label>
+          <div class="pin-mode-selector">
+            <label class="radio-label">
+              <input type="radio" name="pin-mode" value="auto" checked />
+              <span id="txt-pin-auto">Otomatik (4 Hane)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="pin-mode" value="custom" />
+              <span id="txt-pin-custom">Özel PIN</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="pin-mode" value="none" />
+              <span id="txt-pin-none">PIN Yok (Açık)</span>
+            </label>
+          </div>
+          <input type="text" id="input-custom-pin" class="hidden" placeholder="Özel PIN kodunuzu girin" maxlength="12" />
+        </div>
+
+        <!-- Toggles -->
+        <div class="form-group toggles-group">
+          <label class="toggle-row">
+            <input type="checkbox" id="chk-upload" />
+            <span class="toggle-slider"></span>
+            <span id="txt-opt-upload" class="toggle-text">Karşı tarafın dosya yüklemesine izin ver (Upload)</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="chk-tunnel" checked />
+            <span class="toggle-slider"></span>
+            <span id="txt-opt-tunnel" class="toggle-text">İnternet Tüneli Aç (Farklı ağlardan erişim için)</span>
+          </label>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card-actions">
+          <button id="btn-start-share" class="btn btn-primary btn-lg">▶️ Paylaşımı Başlat</button>
+          <button id="btn-stop-share" class="btn btn-danger btn-lg hidden">⏹️ Paylaşımı Durdur</button>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Links & Activity Feed -->
+      <section class="host-right-col">
+        <!-- Live Links Card -->
+        <div class="card links-card">
+          <h2 id="txt-links-heading" class="card-title">🔗 Bağlantı Bilgileri</h2>
+
+          <div id="links-container" class="links-list">
+            <!-- Populated via JS -->
+            <p id="links-empty-msg" class="empty-hint">Paylaşım başlatıldığında linkler burada görünecektir.</p>
+          </div>
+        </div>
+
+        <!-- Activity Feed Card -->
+        <div class="card activity-card">
+          <div class="activity-header">
+            <h2 id="txt-activity-heading" class="card-title">📡 Canlı Aktivite Günlüğü</h2>
+            <span class="live-indicator">CANLI</span>
+          </div>
+          <div id="activity-list" class="activity-list">
+            <div class="empty-hint">Henüz bir aktivite yok.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>folder-together Desktop Host &bull; Kubuntu & Windows 10</span>
+    </footer>
+  </div>
+
+  <script src="/static/host.js"></script>
+</body>
+</html>

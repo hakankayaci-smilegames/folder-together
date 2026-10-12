@@ -1,0 +1,27 @@
+# Binaries
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+cloudflared
+cloudflared.exe
+
+# Test files & logs
+*.log
+*.out
+*.tmp
+
+# OS & IDE
+.directory
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Go
+vendor/
