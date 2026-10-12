@@ -68,35 +68,21 @@ func FindOrDownloadCloudflared() (string, error) {
 
 	// 1. Check in PATH
 	if path, err := exec.LookPath(binaryName); err == nil {
-		return path, nil
-	}
-
-	// 2. Check candidate paths in filesystem
-	homeDir, _ := os.UserHomeDir()
-	candidatePaths := []string{
-		binaryName,
-		filepath.Join(".", binaryName),
-		filepath.Join(homeDir, ".local", "bin", binaryName),
-	}
-	if runtime.GOOS == "windows" {
-		localApp := os.Getenv("LOCALAPPDATA")
-		if localApp != "" {
-			candidatePaths = append(candidatePaths, filepath.Join(localApp, "folder-together", binaryName))
-		}
-	}
-	for _, p := range candidatePaths {
-		if fi, err := os.Stat(p); err == nil && fi.Size() > 1024*1024 {
-			return p, nil
+		if fi, err := os.Stat(path); err == nil && fi.Size() > 30*1024*1024 {
+			return path, nil
 		}
 	}
 
-	// 3. Extract embedded cloudflared (100% offline, zero internet download required!)
+	// 2. Extract or reuse embedded cloudflared (100% offline, zero internet download required!)
 	extracted, err := extractEmbeddedCloudflared()
 	if err == nil && extracted != "" {
 		return extracted, nil
 	}
+	if err != nil {
+		fmt.Printf("⚠️ Gömülü cloudflared çıkarma uyarısı (%v), internet indirmesi deneniyor...\n", err)
+	}
 
-	// 4. Fallback: Attempt download if extraction failed
+	// 3. Fallback: Attempt download only if embedded extraction failed
 	targetPath := filepath.Join(".", binaryName)
 	downloadURL := ""
 	if runtime.GOOS == "windows" {
@@ -107,10 +93,10 @@ func FindOrDownloadCloudflared() (string, error) {
 		return "", fmt.Errorf("unsupported OS for auto-download: %s", runtime.GOOS)
 	}
 
-	fmt.Printf("cloudflared bulunamadı, indiriliyor (bir seferlik): %s\n", downloadURL)
+	fmt.Printf("cloudflared internetten indiriliyor (bir seferlik): %s\n", downloadURL)
 	resp, err := http.Get(downloadURL)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("cloudflared indirme hatası: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -120,8 +106,10 @@ func FindOrDownloadCloudflared() (string, error) {
 	}
 	defer out.Close()
 
-	if _, err := io.Copy(out, resp.Body); err != nil {
-		return "", err
+	written, err := io.Copy(out, resp.Body)
+	if err != nil || written < 30*1024*1024 {
+		_ = os.Remove(targetPath)
+		return "", fmt.Errorf("cloudflared eksik indirildi (%d bytes): %v", written, err)
 	}
 
 	return targetPath, nil

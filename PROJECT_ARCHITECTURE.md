@@ -72,7 +72,7 @@ flowchart TD
 - **`index.html` / `style.css` / `app.js`:** Alıcı web arayüzü (Liste & Izgara görünümü, dinamik anlık dosya arama, medya önizleme modalı, çoklu dosya yükleme ilerleme çubuğu, QR kod paylaşımı).
 
 ### `internal/tunnel/tunnel.go`
-- **Gömülü Binary Motoru (`embeds/`):** `cloudflared.exe` (Windows) ve `cloudflared` (Linux) sıkıştırılmış (gzip) olarak binary içine gömülüdür (`//go:embed`). İlk çalıştırmada `%LOCALAPPDATA%\folder-together` veya `~/.local/bin` dizinine 0.15 saniyede çıkarılır. Windows'ta harici kurulum veya indirme gerektirmez.
+- **Gömülü Binary Motoru (`embeds/`):** `cloudflared.exe` (Windows) ve `cloudflared` (Linux) sıkıştırılmış (gzip) olarak binary içine gömülüdür (`//go:embed`). İlk çalıştırmada çok katmanlı güvenli hedefleme (Önce çalışan exe yanı, ardından `%LOCALAPPDATA%\folder-together`, `%USERPROFILE%` ve `%TEMP%`) ile doğrudan çıkarılır. `.tmp` yeniden adlandırma kilitlenmelerinden arındırılmıştır ve Windows'ta harici kurulum veya indirme gerektirmez.
 - **Tünel Orkestrasyonu (`StartQuickTunnel`):** Cloudflare Quick Tunnel ikilisini `--protocol http2` parametresiyle başlatarak kurumsal güvenlik duvarlarını aşar ve geçici HTTPS tüneli açar.
 - **Otomatik URL Kısaltıcı (`ShortenURL`):** Uzun `*.trycloudflare.com` linkini `ulvis.net` / `clck.ru` üzerinden temiz, kısa (~20 karakter) bir yönlendirme linkine dönüştürür.
 
