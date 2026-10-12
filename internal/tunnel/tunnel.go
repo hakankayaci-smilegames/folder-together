@@ -3,15 +3,18 @@ package tunnel
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 	"time"
 
 	"folder-together/internal/i18n"
@@ -167,4 +170,42 @@ func StartQuickTunnel(ctx context.Context, localPort int) (string, func(), error
 		_ = cmd.Process.Kill()
 		return "", nil, ctx.Err()
 	}
+}
+
+// ShortenURL generates a clean, short URL using free APIs (ulvis.net, clck.ru fallback)
+func ShortenURL(longURL string) string {
+	if longURL == "" {
+		return ""
+	}
+	client := &http.Client{Timeout: 4 * time.Second}
+
+	// 1. Try ulvis.net (clean 301 redirect, no captcha, supports trycloudflare)
+	reqURL := fmt.Sprintf("https://ulvis.net/API/write/get?url=%s&type=json", url.QueryEscape(longURL))
+	resp, err := client.Get(reqURL)
+	if err == nil && resp.StatusCode == http.StatusOK {
+		defer resp.Body.Close()
+		var res struct {
+			Success bool `json:"success"`
+			Data    struct {
+				URL string `json:"url"`
+			} `json:"data"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&res); err == nil && res.Success && res.Data.URL != "" {
+			return res.Data.URL
+		}
+	}
+
+	// 2. Fallback to clck.ru
+	clckURL := fmt.Sprintf("https://clck.ru/--?url=%s", url.QueryEscape(longURL))
+	resp2, err2 := client.Get(clckURL)
+	if err2 == nil && resp2.StatusCode == http.StatusOK {
+		defer resp2.Body.Close()
+		b, _ := io.ReadAll(resp2.Body)
+		s := strings.TrimSpace(string(b))
+		if strings.HasPrefix(s, "http") {
+			return s
+		}
+	}
+
+	return ""
 }

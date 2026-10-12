@@ -120,9 +120,14 @@ function renderLinks(data) {
     });
   }
 
+  // Short URL (if available)
+  if (data.shortURL) {
+    container.appendChild(createLinkCard(i18n["short_url"] || "Kısa Link (Hızlı Paylaşım)", data.shortURL, pinText, true));
+  }
+
   // Tunnel Link
   if (data.tunnelURL) {
-    container.appendChild(createLinkCard(i18n["tunnel_url"] || "İnternet Tüneli", data.tunnelURL, pinText, true));
+    container.appendChild(createLinkCard(i18n["tunnel_url"] || "İnternet Tüneli (Orijinal)", data.tunnelURL, pinText, true));
   } else {
     const card = document.createElement("div");
     card.className = "link-item-card";

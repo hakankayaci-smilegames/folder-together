@@ -170,8 +170,12 @@ func main() {
 				fmt.Printf("  ⚠️  %s (%v)\n", i18n.T("tunnel_failed"), err)
 			} else {
 				tunnelCleanup = cleanup
-				srv.SetTunnelURL(publicURL, cleanup)
+				shortURL := tunnel.ShortenURL(publicURL)
+				srv.SetTunnelURL(publicURL, shortURL, cleanup)
 				fmt.Printf("  ✨ %s\n", i18n.T("tunnel_ready"))
+				if shortURL != "" {
+					fmt.Printf("     🔗 %s: %s\n", i18n.T("short_url"), shortURL)
+				}
 				fmt.Printf("     👉 %s\n", publicURL)
 			}
 		}

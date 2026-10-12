@@ -71,6 +71,10 @@ flowchart TD
 - **`host.html` / `host.css` / `host.js`:** Masaüstü kontrol paneli (Klasör/dosya seçimi, PIN belirleme, yükleme izni, tünel açma/kapama, QR kod modalı ve canlı aktivite akışı).
 - **`index.html` / `style.css` / `app.js`:** Alıcı web arayüzü (Liste & Izgara görünümü, dinamik anlık dosya arama, medya önizleme modalı, çoklu dosya yükleme ilerleme çubuğu, QR kod paylaşımı).
 
+### `internal/tunnel/tunnel.go`
+- **Tünel Orkestrasyonu (`StartQuickTunnel`):** Cloudflare Quick Tunnel ikilisini `--protocol http2` parametresiyle başlatarak kurumsal güvenlik duvarlarını aşar ve geçici HTTPS tüneli açar.
+- **Otomatik URL Kısaltıcı (`ShortenURL`):** Uzun `*.trycloudflare.com` linkini `ulvis.net` / `clck.ru` üzerinden temiz, kısa (~20 karakter) bir yönlendirme linkine dönüştürür.
+
 ---
 
 ## 4. Dizin Yapısı

@@ -61,6 +61,7 @@ type Server struct {
 	cfg          Config
 	isRunning    bool
 	tunnelURL    string
+	shortURL     string
 	tunnelCancel context.CancelFunc
 	events       []ActivityEvent
 	httpServer   *http.Server
@@ -96,12 +97,17 @@ func (s *Server) LogEvent(msg string, eventType string) {
 	s.logEventLocked(msg, eventType)
 }
 
-func (s *Server) SetTunnelURL(url string, cancel context.CancelFunc) {
+func (s *Server) SetTunnelURL(url string, shortURL string, cancel context.CancelFunc) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.tunnelURL = url
+	s.shortURL = shortURL
 	s.tunnelCancel = cancel
-	s.logEventLocked(fmt.Sprintf("İnternet tüneli açıldı: %s", url), "system")
+	if shortURL != "" {
+		s.logEventLocked(fmt.Sprintf("İnternet tüneli açıldı: %s (Kısa Link: %s)", url, shortURL), "system")
+	} else {
+		s.logEventLocked(fmt.Sprintf("İnternet tüneli açıldı: %s", url), "system")
+	}
 }
 
 func (s *Server) GetPort() int {
@@ -512,6 +518,7 @@ func (s *Server) handleHostStatus(w http.ResponseWriter, r *http.Request) {
 		"port":         s.cfg.Port,
 		"localIPs":     tunnel.GetLocalIPs(),
 		"tunnelURL":    s.tunnelURL,
+		"shortURL":     s.shortURL,
 		"events":       s.events,
 		"lang":         i18n.GetLang(),
 	}
@@ -581,7 +588,8 @@ func (s *Server) handleHostStart(w http.ResponseWriter, r *http.Request) {
 				s.LogEvent("Tünel hatası: "+err.Error(), "system")
 				cancel()
 			} else {
-				s.SetTunnelURL(pubURL, func() {
+				shortURL := tunnel.ShortenURL(pubURL)
+				s.SetTunnelURL(pubURL, shortURL, func() {
 					if cleanup != nil {
 						cleanup()
 					}
@@ -596,6 +604,7 @@ func (s *Server) handleHostStart(w http.ResponseWriter, r *http.Request) {
 			s.tunnelCancel = nil
 		}
 		s.tunnelURL = ""
+		s.shortURL = ""
 		s.logEventLocked("Tünel durduruldu.", "system")
 		s.mu.Unlock()
 	}
@@ -612,6 +621,7 @@ func (s *Server) handleHostStop(w http.ResponseWriter, r *http.Request) {
 		s.tunnelCancel = nil
 	}
 	s.tunnelURL = ""
+	s.shortURL = ""
 	s.logEventLocked("Paylaşım durduruldu.", "system")
 	s.mu.Unlock()
 
